@@ -101,9 +101,9 @@ class ToolRegistry:
             raise KeyError(f"Unknown tool: {name}. Available: {list(self._tools.keys())}")
         return self._tools[name]
 
-    def execute(self, name: str, **kwargs: Any) -> Any:
-        """Execute a tool by name."""
-        return self.get(name).execute(**kwargs)
+    def execute(self, tool_name: str, /, **kwargs: Any) -> Any:
+        """Execute a tool by name. tool_name is positional-only so it never collides with a tool kwarg."""
+        return self.get(tool_name).execute(**kwargs)
 
     def list_tools(self) -> list[Tool]:
         """List all registered tools."""
