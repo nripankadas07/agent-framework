@@ -1,126 +1,85 @@
 # agent-framework
 
-A lightweight agent orchestration library with tool registration, conversation memory, and ReAct-style planning loops. No heavyweight dependencies — just the core abstractions you need to build LLM-powered agents.
+Tiny, inspectable agent runtime with tools, memory, planning steps, and a trace
+you can read.
 
-## Why This Exists
+**Thesis:** agents are easier to trust when the loop is visible. `agent-framework`
+shows the core runtime contract - plan, act, observe, remember, finish - without
+hiding it inside a large framework.
 
-Most agent frameworks pull in dozens of dependencies and enforce rigid patterns. This library provides the essential building blocks — tools, memory, and a planning loop — so you can build agents that fit your architecture instead of the other way around.
-
-## Installation
+## Run It In 30 Seconds
 
 ```bash
-pip install -e .
+python -m pip install -e ".[dev]" && python examples/no_api_key_agent.py
 ```
 
-## Quick Start
+No API key is required. The demo uses a deterministic planner and a safe
+arithmetic tool implemented with `ast`, not `eval()`.
+
+## Why Care?
+
+- You want to understand tool-calling agents from first principles.
+- You want a small runtime you can replace piece by piece.
+- You need examples that are safe enough to copy into your own experiments.
+
+## What Makes It Different?
+
+| This repo | Heavy agent frameworks |
+|---|---|
+| Explicit `AgentStep` trace | Often hidden behind callbacks |
+| Bring-your-own planner | Planner/model coupling is common |
+| Tiny tool registry | Large plugin ecosystems |
+| Local no-key demo | Cloud setup usually required |
+
+## API Shape
 
 ```python
-from agent_framework.agent import Agent
+from agent_framework.agent import Agent, AgentStep
 from agent_framework.tools import ToolRegistry
 
-# Register tools
+def planner(context: dict) -> AgentStep:
+    return AgentStep(thought="done", action="finish")
+
 tools = ToolRegistry()
-
-@tools.register("search", "Search for information")
-def search(query: str) -> str:
-    return f"Results for: {query}"
-
-@tools.register("calculator", "Do math")
-def calculator(expression: str) -> str:
-    return str(eval(expression))
-
-# Create and run an agent
-agent = Agent(name="assistant", tools=tools)
-result = agent.run("Find the population of France")
-
-print(result.answer)
-print(f"Completed in {result.num_steps} steps")
+agent = Agent(name="demo", tools=tools, planner=planner)
+result = agent.run("inspect the loop")
+print(result.steps)
 ```
 
-## Components
+## Architecture
 
-### Tool Registry
-
-Type-safe tool registration with automatic parameter inference:
-
-```python
-from agent_framework.tools import ToolRegistry, ToolParam
-
-registry = ToolRegistry()
-
-# Decorator style
-@registry.register("greet", "Greet someone by name")
-def greet(name: str) -> str:
-    return f"Hello, {name}!"
-
-# Programmatic style
-registry.add("double", lambda x: x * 2, "Double a number")
-
-# Export schemas for LLM consumption
-schemas = registry.schemas()
+```mermaid
+flowchart LR
+    Task --> Planner
+    Planner --> AgentStep
+    AgentStep --> ToolRegistry
+    ToolRegistry --> Observation
+    Observation --> Memory
+    Memory --> Planner
+    Planner --> AgentResult
 ```
 
-### Memory
+## Correctness And Safety
 
-Conversation memory with sliding-window management:
+- Tool names are explicit; unknown tools fail loudly.
+- Tool execution errors are captured in the step trace.
+- The README and demo avoid unsafe `eval()` patterns.
+- `max_steps` bounds runaway planners.
 
-```python
-from agent_framework.memory import ConversationMemory, SummaryMemory
+## Limitations
 
-# Sliding window — keeps recent messages, preserves system prompt
-memory = ConversationMemory(max_messages=50)
-memory.add_system("You are a helpful assistant.")
-memory.add_user("Hello!")
-memory.add_assistant("Hi there!")
-
-# Summary memory — compresses old messages into summaries
-summary_mem = SummaryMemory(summarize_threshold=20)
-```
-
-### Agent Patterns
-
-Pre-built patterns for common agent architectures:
-
-```python
-from agent_framework.patterns import create_tool_agent, AgentRouter
-
-# Quick tool agent
-agent = create_tool_agent("math", tools={"calc": lambda expr: eval(expr)})
-
-# Multi-agent routing
-router = AgentRouter()
-router.register("math", math_agent, keywords=["calculate", "compute"])
-router.register("search", search_agent, keywords=["find", "look up"])
-result = router.route("Calculate the area of a circle with radius 5")
-```
-
-## Project Structure
-
-```
-agent-framework/
-├── agent_framework/
-│   ├── __init__.py
-│   ├── tools.py            # Tool registration and execution
-│   ├── memory.py           # Conversation and summary memory
-│   ├── agent.py            # Core ReAct agent loop
-│   └── patterns.py         # Common agent patterns
-├── tests/
-│   ├── test_tools.py
-│   ├── test_memory.py
-│   ├── test_agent.py
-│   └── test_patterns.py
-├── pyproject.toml
-├── README.md
-└── LICENSE
-```
+- This is not a sandbox. A dangerous tool is still dangerous.
+- The default planner is only for tests and demos.
+- Real LLM calls should return structured `AgentStep` data and validate
+  tool arguments before execution.
 
 ## Development
 
 ```bash
-pip install -e ".[dev]"
-pytest tests/ -v
+python -m pip install -e ".[dev]"
+pytest
+python scripts/benchmark.py
 ```
 
-## License
-
-MIT
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md), [ROADMAP.md](ROADMAP.md), and
+[RELEASE.md](RELEASE.md).

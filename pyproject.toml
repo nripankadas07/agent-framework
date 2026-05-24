@@ -7,7 +7,7 @@ name = "agent-framework"
 version = "0.1.0"
 description = "Lightweight agent orchestration with tool registration, memory, and planning loops."
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.10"
 authors = [{name = "Nripanka Das"}]
 
@@ -21,3 +21,6 @@ dev = ["pytest>=7.0", "pytest-cov>=4.0", "mypy>=1.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["agent_framework*"]

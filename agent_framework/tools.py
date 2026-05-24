@@ -58,9 +58,9 @@ class ToolRegistry:
     Usage:
         registry = ToolRegistry()
 
-        @registry.register("calculator", "Perform arithmetic")
-        def calc(expression: str) -> str:
-            return str(eval(expression))
+        @registry.register("double", "Double an integer")
+        def double(value: int) -> int:
+            return value * 2
 
         result = registry.execute("calculator", expression="2 + 2")
     """
