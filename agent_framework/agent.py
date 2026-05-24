@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable
 
-from .memory import ConversationMemory, Role
+from .memory import ConversationMemory
 from .tools import ToolRegistry
 
 

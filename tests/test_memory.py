@@ -1,6 +1,5 @@
 """Tests for agent memory systems."""
 
-import pytest
 
 from agent_framework.memory import ConversationMemory, SummaryMemory, Role, Message
 

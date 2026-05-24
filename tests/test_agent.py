@@ -1,6 +1,5 @@
 """Tests for the core agent."""
 
-import pytest
 
 from agent_framework.agent import Agent, AgentState, AgentStep
 from agent_framework.tools import ToolRegistry
@@ -46,7 +45,7 @@ class TestAgent:
     def test_state_transitions(self):
         agent = Agent(name="test")
         assert agent.state == AgentState.IDLE
-        result = agent.run("test task")
+        agent.run("test task")
         assert agent.state in (AgentState.DONE, AgentState.ERROR)
 
     def test_system_prompt(self):

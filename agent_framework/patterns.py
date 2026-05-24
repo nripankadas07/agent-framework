@@ -6,10 +6,9 @@ chain-of-thought, tool-augmented Q&A, and multi-agent delegation.
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Callable
 
 from .agent import Agent, AgentResult, AgentStep
-from .memory import ConversationMemory
 from .tools import ToolRegistry
 
 
